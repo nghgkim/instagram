@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Converter Tools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 1000px;
+            width: 100%;
+            margin: auto;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .container {
+                padding: 20px;
+                border-radius: 15px;
+                max-height: calc(100vh - 20px);
+            }
+            
+            h1 {
+                font-size: 24px;
+            }
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .tabs {
+                gap: 5px;
+            }
+            
+            .tab {
+                padding: 10px 16px !important;
+                font-size: 14px !important;
+            }
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            top: 2px;
+        }
+
+        .tab:hover {
+            color: #667eea;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .converter-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group {
+                flex-direction: column;
+            }
+            
+            .input-group button {
+                width: 100%;
+            }
+        }
+
+        input, select {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .result {
+            background: #f5f5f5;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 10px;
+            min-height: 60px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            color: #333;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .result.show {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .result-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            border: 1px solid #fcc;
+        }
+
+        .copy-btn {
+            background: #4CAF50;
+            padding: 8px 16px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .copy-btn:hover {
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        /* Epoch Converter Styles */
+        .current-time {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .current-time {
+                padding: 12px;
+            }
+            
+            .current-time-value {
+                font-size: 20px !important;
+            }
+            
+            .time-info {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        .current-time-label {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .current-time-value {
+            font-size: 24px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .time-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .time-info-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .time-info-label {
+            font-size: 11px;
+            color: #999;
+            margin-bottom: 4px;
+        }
+
+        .time-info-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            font-family: 'Courier New', monospace;
+        }
+
+
+        #epochResults {
+            min-height: 200px;
+            max-height: 400px;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .result-item {
+            background: white;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item-label {
+            font-size: 12px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .result-item-value {
+            font-size: 13px;
+            color: #333;
+            font-family: 'Courier New', monospace;
+            flex: 1;
+            text-align: right;
+            margin-right: 10px;
+        }
+
+        .result-item-copy {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+
+        .result-item-copy:hover {
+            background: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🛠️ Converter Tools</h1>
+        <p class="subtitle">Công cụ chuyển đổi đa năng</p>
+
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab(0)">📸 Instagram</button>
+            <button class="tab" onclick="switchTab(1)">⏰ Epoch</button>
+        </div>
+
+        <!-- Instagram Converter Tab -->
+        <div class="tab-content active" id="instagramTab">
+            <div class="converter-section">
+                <div class="section-title">Shortcode → ID</div>
+                <div class="input-group">
+                    <input type="text" id="shortcodeInput" placeholder="Nhập shortcode (ví dụ: DS0HbhfjaeZ)">
+                    <button onclick="convertShortcodeToId()">Chuyển đổi</button>
+                </div>
+                <div id="shortcodeResult" class="result"></div>
+            </div>
+
+            <div class="converter-section">
+                <div class="section-title">ID → Shortcode</div>
+                <div class="input-group">
+                    <input type="text" id="idInput" placeholder="Nhập ID (ví dụ: 3797693063494477721)">
+                    <button onclick="convertIdToShortcode()">Chuyển đổi</button>
+                </div>
+                <div id="idResult" class="result"></div>
+            </div>
+        </div>
+
+        <!-- Epoch Converter Tab -->
+        <div class="tab-content" id="epochTab">
+            <!-- Current Time Section -->
+            <div class="current-time">
+                <div class="current-time-label">Current Time</div>
+                <div class="current-time-value" id="currentTime">--</div>
+                <div class="time-info">
+                    <div class="time-info-item">
+                        <div class="time-info-label">Unix Seconds</div>
+                        <div class="time-info-value" id="currentUnixSeconds">--</div>
+                    </div>
+                    <div class="time-info-item">
+                        <div class="time-info-label">Unix Milliseconds</div>
+                        <div class="time-info-value" id="currentUnixMillis">--</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Timezone Selector -->
+            <div class="input-group" style="margin-bottom: 20px;">
+                <select id="timezoneSelect">
+                    <option value="UTC">UTC</option>
+                    <option value="Asia/Saigon" selected>UTC+07:00 Asia/Saigon</option>
+                    <option value="America/New_York">UTC-05:00 America/New_York</option>
+                    <option value="Europe/London">UTC+00:00 Europe/London</option>
+                    <option value="Asia/Tokyo">UTC+09:00 Asia/Tokyo</option>
+                </select>
+                <button onclick="resetEpoch()">Reset</button>
+            </div>
+
+            <!-- Single Input for All Formats -->
+            <div class="section-title">Convert Time</div>
+            <div class="input-group">
+                <input type="text" id="epochInput" placeholder="Paste timestamp, datetime, hoặc ISO date (ví dụ: 1707397233, 2024-02-08T13:00:33.000Z)">
+                <button onclick="convertEpoch()">Chuyển đổi</button>
+            </div>
+            <div id="epochResults"></div>
+        </div>
+    </div>
+
+    <script>
+        // Tab switching
+        function switchTab(index) {
+            const tabs = document.querySelectorAll('.tab');
+            const contents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach((tab, i) => {
+                if (i === index) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            contents.forEach((content, i) => {
+                if (i === index) {
+                    content.classList.add('active');
+                } else {
+                    content.classList.remove('active');
+                }
+            });
+
+            // Start epoch timer if epoch tab is active
+            if (index === 1) {
+                updateCurrentTime();
+                setInterval(updateCurrentTime, 1000);
+            }
+        }
+
+        // Detect input format
+        function detectFormat(value) {
+            value = value.trim();
+            
+            // Check if it's a number (timestamp)
+            if (/^\d+$/.test(value)) {
+                return 'timestamp';
+            }
+            
+            // Check if it's ISO 8601 format
+            if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value) || /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/.test(value)) {
+                return 'iso';
+            }
+            
+            // Check if it's a date string
+            const date = new Date(value);
+            if (!isNaN(date.getTime())) {
+                return 'date';
+            }
+            
+            return null;
+        }
+
+        // Update current time
+        function updateCurrentTime() {
+            const now = new Date();
+            const timezone = document.getElementById('timezoneSelect').value;
+            
+            let localTime;
+            if (timezone === 'UTC') {
+                localTime = now.toUTCString();
+            } else {
+                localTime = now.toLocaleString('en-US', { 
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
+            }
+            
+            document.getElementById('currentTime').textContent = localTime;
+            document.getElementById('currentUnixSeconds').textContent = Math.floor(now.getTime() / 1000);
+            document.getElementById('currentUnixMillis').textContent = now.getTime();
+        }
+
+        // Reset epoch converter
+        function resetEpoch() {
+            document.getElementById('epochInput').value = '';
+            document.getElementById('epochResults').innerHTML = '';
+        }
+
+        // Get timezone offset
+        function getTimezoneOffset(timezone) {
+            const now = new Date();
+            const utc = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+            const local = new Date(now.toLocaleString('en-US', { timeZone: timezone }));
+            const offset = (local - utc) / (1000 * 60 * 60);
+            return offset;
+        }
+
+        // Format timezone string
+        function formatTimezone(timezone, date) {
+            const offset = getTimezoneOffset(timezone);
+            const offsetStr = offset >= 0 ? `+${String(Math.floor(offset)).padStart(2, '0')}` : String(Math.floor(offset)).padStart(3, '0');
+            const minutes = Math.abs(offset % 1 * 60);
+            const offsetFull = `${offsetStr}:${String(Math.floor(minutes)).padStart(2, '0')}`;
+            
+            const formatted = date.toLocaleString('en-US', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: true
+            });
+            
+            return `${formatted} ${offsetFull}`;
+        }
+
+        // Convert epoch with auto-detect
+        function convertEpoch() {
+            const input = document.getElementById('epochInput').value.trim();
+            const timezone = document.getElementById('timezoneSelect').value;
+            const resultsDiv = document.getElementById('epochResults');
+            
+            if (!input) {
+                resultsDiv.innerHTML = '<div class="error">Vui lòng nhập giá trị</div>';
+                return;
+            }
+
+            const format = detectFormat(input);
+            let date;
+
+            if (format === 'timestamp') {
+                // Parse as timestamp
+                let seconds = parseInt(input);
+                if (input.length > 10) {
+                    // Assume milliseconds
+                    seconds = Math.floor(parseInt(input) / 1000);
+                }
+                date = new Date(seconds * 1000);
+            } else if (format === 'iso' || format === 'date') {
+                // Parse as date string
+                date = new Date(input);
+            } else {
+                resultsDiv.innerHTML = '<div class="error">Không thể nhận diện format. Vui lòng nhập timestamp, ISO date hoặc date string hợp lệ.</div>';
+                return;
+            }
+
+            if (isNaN(date.getTime())) {
+                resultsDiv.innerHTML = '<div class="error">Giá trị không hợp lệ</div>';
+                return;
+            }
+
+            const seconds = Math.floor(date.getTime() / 1000);
+            const results = [];
+            results.push({ label: 'UNIX SECONDS', value: seconds.toString() });
+            results.push({ label: 'UNIX MILLISECONDS', value: date.getTime().toString() });
+            results.push({ label: timezone === 'UTC' ? 'UTC' : timezone.toUpperCase(), value: formatTimezone(timezone, date) });
+            results.push({ label: 'UTC ISO 8601', value: date.toISOString() });
+            results.push({ label: 'UTC RFC 2822', value: date.toUTCString() });
+
+            displayEpochResults('epochResults', results);
+        }
+
+        // Display epoch results
+        function displayEpochResults(containerId, results) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = results.map(result => `
+                <div class="result-item">
+                    <div class="result-item-label">${result.label}</div>
+                    <div class="result-item-value">${result.value}</div>
+                    <button class="result-item-copy" onclick="copyToClipboard('${result.value.replace(/'/g, "\\'")}')">Copy</button>
+                </div>
+            `).join('');
+        }
+
+        // Auto-convert on paste and input
+        const epochInput = document.getElementById('epochInput');
+        
+        epochInput.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                const value = epochInput.value.trim();
+                if (value) {
+                    convertEpoch();
+                }
+            }, 10);
+        });
+
+        epochInput.addEventListener('input', function(e) {
+            const value = epochInput.value.trim();
+            if (value) {
+                clearTimeout(epochInput.convertTimeout);
+                epochInput.convertTimeout = setTimeout(() => {
+                    convertEpoch();
+                }, 300);
+            } else {
+                document.getElementById('epochResults').innerHTML = '';
+            }
+        });
+
+        epochInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                convertEpoch();
+            }
+        });
+
+        // Instagram Converter Functions
+        const shortcodeInput = document.getElementById('shortcodeInput');
+        const idInput = document.getElementById('idInput');
+        let isAutoFilling = false;
+
+        function isId(value) {
+            return /^\d+$/.test(value);
+        }
+
+        function isShortcode(value) {
+            return /^[A-Za-z0-9_-]+$/.test(value) && !/^\d+$/.test(value);
+        }
+
+        shortcodeInput.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                const value = shortcodeInput.value.trim();
+                if (value && !isAutoFilling) {
+                    if (isId(value)) {
+                        isAutoFilling = true;
+                        shortcodeInput.value = '';
+                        idInput.value = value;
+                        convertIdToShortcode().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('idResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    shortcodeInput.value = resultValue.textContent.trim();
+                                    convertShortcodeToId().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                } else {
+                                    isAutoFilling = false;
+                                }
+                            }, 100);
+                        });
+                    } else if (isShortcode(value)) {
+                        convertShortcodeToId().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('shortcodeResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    isAutoFilling = true;
+                                    idInput.value = resultValue.textContent.trim();
+                                    convertIdToShortcode().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                }
+                            }, 100);
+                        });
+                    } else {
+                        const resultDiv = document.getElementById('shortcodeResult');
+                        showError(resultDiv, 'Giá trị không hợp lệ. Vui lòng nhập shortcode hoặc ID.');
+                    }
+                }
+            }, 10);
+        });
+
+        shortcodeInput.addEventListener('input', function(e) {
+            if (isAutoFilling) return;
+            
+            const value = shortcodeInput.value.trim();
+            if (value) {
+                if (isId(value)) {
+                    isAutoFilling = true;
+                    shortcodeInput.value = '';
+                    idInput.value = value;
+                    clearTimeout(idInput.convertTimeout);
+                    idInput.convertTimeout = setTimeout(() => {
+                        convertIdToShortcode().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('idResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    shortcodeInput.value = resultValue.textContent.trim();
+                                    convertShortcodeToId().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                } else {
+                                    isAutoFilling = false;
+                                }
+                            }, 100);
+                        });
+                    }, 300);
+                    return;
+                }
+                
+                clearTimeout(shortcodeInput.convertTimeout);
+                shortcodeInput.convertTimeout = setTimeout(() => {
+                    if (isShortcode(value)) {
+                        convertShortcodeToId().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('shortcodeResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    isAutoFilling = true;
+                                    idInput.value = resultValue.textContent.trim();
+                                    convertIdToShortcode().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                }
+                            }, 100);
+                        });
+                    }
+                }, 300);
+            } else {
+                const shortcodeResult = document.getElementById('shortcodeResult');
+                const idResult = document.getElementById('idResult');
+                shortcodeResult.className = 'result';
+                shortcodeResult.innerHTML = '';
+                idResult.className = 'result';
+                idResult.innerHTML = '';
+                idInput.value = '';
+            }
+        });
+
+        idInput.addEventListener('paste', function(e) {
+            setTimeout(() => {
+                const value = idInput.value.trim();
+                if (value && !isAutoFilling) {
+                    if (isShortcode(value)) {
+                        isAutoFilling = true;
+                        idInput.value = '';
+                        shortcodeInput.value = value;
+                        convertShortcodeToId().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('shortcodeResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    idInput.value = resultValue.textContent.trim();
+                                    convertIdToShortcode().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                } else {
+                                    isAutoFilling = false;
+                                }
+                            }, 100);
+                        });
+                    } else if (isId(value)) {
+                        convertIdToShortcode().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('idResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    isAutoFilling = true;
+                                    shortcodeInput.value = resultValue.textContent.trim();
+                                    convertShortcodeToId().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                }
+                            }, 100);
+                        });
+                    } else {
+                        const resultDiv = document.getElementById('idResult');
+                        showError(resultDiv, 'Giá trị không hợp lệ. Vui lòng nhập shortcode hoặc ID.');
+                    }
+                }
+            }, 10);
+        });
+
+        idInput.addEventListener('input', function(e) {
+            if (isAutoFilling) return;
+            
+            const value = idInput.value.trim();
+            if (value) {
+                if (isShortcode(value)) {
+                    isAutoFilling = true;
+                    idInput.value = '';
+                    shortcodeInput.value = value;
+                    clearTimeout(shortcodeInput.convertTimeout);
+                    shortcodeInput.convertTimeout = setTimeout(() => {
+                        convertShortcodeToId().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('shortcodeResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    idInput.value = resultValue.textContent.trim();
+                                    convertIdToShortcode().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                } else {
+                                    isAutoFilling = false;
+                                }
+                            }, 100);
+                        });
+                    }, 300);
+                    return;
+                }
+                
+                clearTimeout(idInput.convertTimeout);
+                idInput.convertTimeout = setTimeout(() => {
+                    if (isId(value)) {
+                        convertIdToShortcode().then(() => {
+                            setTimeout(() => {
+                                const resultDiv = document.getElementById('idResult');
+                                const resultValue = resultDiv.querySelector('.result-value');
+                                if (resultValue && !resultDiv.classList.contains('error')) {
+                                    isAutoFilling = true;
+                                    shortcodeInput.value = resultValue.textContent.trim();
+                                    convertShortcodeToId().then(() => {
+                                        isAutoFilling = false;
+                                    });
+                                }
+                            }, 100);
+                        });
+                    }
+                }, 300);
+            } else {
+                const shortcodeResult = document.getElementById('shortcodeResult');
+                const idResult = document.getElementById('idResult');
+                shortcodeResult.className = 'result';
+                shortcodeResult.innerHTML = '';
+                idResult.className = 'result';
+                idResult.innerHTML = '';
+                shortcodeInput.value = '';
+            }
+        });
+
+        shortcodeInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                convertShortcodeToId();
+            }
+        });
+
+        idInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                convertIdToShortcode();
+            }
+        });
+
+        async function convertShortcodeToId() {
+            const shortcode = document.getElementById('shortcodeInput').value.trim();
+            const resultDiv = document.getElementById('shortcodeResult');
+
+            if (!shortcode) {
+                showError(resultDiv, 'Vui lòng nhập shortcode');
+                return Promise.resolve();
+            }
+
+            try {
+                const response = await fetch(`/shortcode-to-id?shortcode=${encodeURIComponent(shortcode)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(resultDiv, data.error);
+                } else {
+                    showResult(resultDiv, 'ID:', data.id);
+                }
+                return Promise.resolve();
+            } catch (error) {
+                showError(resultDiv, 'Lỗi: ' + error.message);
+                return Promise.resolve();
+            }
+        }
+
+        async function convertIdToShortcode() {
+            const id = document.getElementById('idInput').value.trim();
+            const resultDiv = document.getElementById('idResult');
+
+            if (!id) {
+                showError(resultDiv, 'Vui lòng nhập ID');
+                return Promise.resolve();
+            }
+
+            try {
+                const response = await fetch(`/id-to-shortcode?id=${encodeURIComponent(id)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    showError(resultDiv, data.error);
+                } else {
+                    showResult(resultDiv, 'Shortcode:', data.shortcode);
+                }
+                return Promise.resolve();
+            } catch (error) {
+                showError(resultDiv, 'Lỗi: ' + error.message);
+                return Promise.resolve();
+            }
+        }
+
+        function showResult(div, label, value) {
+            div.className = 'result show';
+            div.innerHTML = `
+                <div class="result-label">${label}</div>
+                <div class="result-value">${value}</div>
+                <button class="copy-btn" onclick="copyToClipboard('${value}')">📋 Copy</button>
+            `;
+        }
+
+        function showError(div, message) {
+            div.className = 'result show error';
+            div.innerHTML = `<div>❌ ${message}</div>`;
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // Silent copy, no alert
+            }).catch(err => {
+                console.error('Lỗi copy:', err);
+            });
+        }
+
+        // Auto-update current time
+        updateCurrentTime();
+        setInterval(updateCurrentTime, 1000);
+    </script>
+</body>
+</html>
