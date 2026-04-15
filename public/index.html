@@ -350,6 +350,7 @@
         <div class="tabs">
             <button class="tab active" onclick="switchTab(0)">📸 Instagram</button>
             <button class="tab" onclick="switchTab(1)">⏰ Epoch</button>
+            <button class="tab" onclick="switchTab(2)">💼 LinkedIn</button>
         </div>
 
         <!-- Instagram Converter Tab -->
@@ -411,6 +412,19 @@
             </div>
             <div id="epochResults"></div>
         </div>
+
+        <!-- LinkedIn Post ID Parser Tab -->
+        <div class="tab-content" id="linkedinTab">
+            <div class="converter-section">
+                <div class="section-title">LinkedIn Post ID → Timestamp</div>
+                <p style="font-size:13px;color:#888;margin-bottom:16px;">Nhập Post ID (số nguyên) hoặc URN (<code style="background:#f5f5f5;padding:2px 6px;border-radius:4px;">urn:li:activity:...</code>)</p>
+                <div class="input-group">
+                    <input type="text" id="linkedinIdInput" placeholder="e.g. 7315309682816122881 hoặc urn:li:activity:7315309682816122881">
+                    <button onclick="parseLinkedInId()">Parse</button>
+                </div>
+                <div id="linkedinResults"></div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -439,6 +453,11 @@
             if (index === 1) {
                 updateCurrentTime();
                 setInterval(updateCurrentTime, 1000);
+            }
+
+            // Clear linkedin results when switching away
+            if (index !== 2) {
+                // keep results
             }
         }
 
@@ -919,6 +938,61 @@
         // Auto-update current time
         updateCurrentTime();
         setInterval(updateCurrentTime, 1000);
+
+        // ── LinkedIn Post ID Parser ──────────────────────────────────────
+        function parseLinkedInId() {
+            const raw = document.getElementById('linkedinIdInput').value.trim();
+            const container = document.getElementById('linkedinResults');
+
+            if (!raw) {
+                container.innerHTML = '<div class="result show error"><div>❌ Vui lòng nhập Post ID</div></div>';
+                return;
+            }
+
+            try {
+                // Extract numeric ID from plain number or URN
+                const match = raw.match(/(\d{10,})$/);
+                if (!match) throw new Error('Không nhận dạng được Post ID. Nhập số nguyên hoặc URN LinkedIn.');
+                const numericId = match[1];
+
+                // Core logic: BigInt >> 22 (same as parseCreatedDate)
+                const postId = BigInt(numericId);
+                const ts = Number(postId >> BigInt(22));
+
+                if (ts <= 0 || ts > 9_999_999_999_999) throw new Error('Timestamp không hợp lệ: ' + ts);
+
+                const date = new Date(ts);
+                const isoString = date.toISOString();
+                const localTime = date.toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' }) + ' (GMT+7)';
+                const unixSec = Math.floor(ts / 1000).toString();
+
+                const results = [
+                    { label: 'TIMESTAMP (ms)', value: ts.toString() },
+                    { label: 'ISO STRING', value: isoString },
+                    { label: 'LOCAL TIME (GMT+7)', value: localTime },
+                    { label: 'UNIX SECONDS', value: unixSec },
+                ];
+
+                displayEpochResults('linkedinResults', results);
+            } catch (e) {
+                container.innerHTML = `<div class="result show error"><div>❌ ${e.message}</div></div>`;
+            }
+        }
+
+        // Enter key & auto-parse for LinkedIn input
+        const linkedinIdInput = document.getElementById('linkedinIdInput');
+        linkedinIdInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') parseLinkedInId();
+        });
+        linkedinIdInput.addEventListener('paste', function() {
+            setTimeout(parseLinkedInId, 10);
+        });
+        linkedinIdInput.addEventListener('input', function() {
+            const v = linkedinIdInput.value.trim();
+            if (!v) { document.getElementById('linkedinResults').innerHTML = ''; return; }
+            clearTimeout(linkedinIdInput._t);
+            linkedinIdInput._t = setTimeout(parseLinkedInId, 300);
+        });
     </script>
 </body>
 </html>
